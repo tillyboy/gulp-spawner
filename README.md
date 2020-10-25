@@ -23,7 +23,6 @@ mongod.sig.kill();
 
 ### TODOs
 
-[ ] add automated QC (lint + fmt) and testing as git hooks
 [ ] fix all TODOs/FIXMEs
 [ ] &gt;95% test coverage
 [ ] typescript migration?
