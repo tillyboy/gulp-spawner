@@ -23,6 +23,6 @@ mongod.sig.kill();
 
 ### TODOs
 
-[ ] fix all TODOs/FIXMEs
-[ ] &gt;95% test coverage
-[ ] typescript migration?
+- fix all TODOs/FIXMEs
+- &gt;95% test coverage
+- typescript migration?
