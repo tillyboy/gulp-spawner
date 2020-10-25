@@ -15,7 +15,9 @@ building/testing automation, not towards production use.
 
 ```javascript
 const spawner = require("spawner");
-spawner.register("mongod", spawner.sys("mongod", ["--dbpath", "data"]));
+spawner.register("mongod", () => {
+  spawner.sys("mongod", ["--dbpath", "data"]);
+});
 const mongod = spawner.mongod();
 /* run stuff, e.g. tests that require mongod to be running */
 mongod.sig.kill();
