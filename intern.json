@@ -1,0 +1,8 @@
+{
+  "$schema": "./node_modules/intern/schemas/config.json",
+  "suites": ["intern/unit/*.spec.js"],
+  "coverage": ["index.js"],
+  "environments": ["node"],
+  "filterErrorStack": false,
+  "defaultTimeout": 3000
+}

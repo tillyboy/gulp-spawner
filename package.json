@@ -1,0 +1,69 @@
+{
+  "name": "gulp-spawner",
+  "version": "0.0.1",
+  "description": "Idiotmatic and flexible process handling for gulp",
+  "main": "index.js",
+  "scripts": {
+    "test": "intern"
+  },
+  "keywords": [
+    "gulp",
+    "process",
+    "child",
+    "subprocess",
+    "tasks",
+    "spawn",
+    "spawner",
+    "spawning"
+  ],
+  "author": "tillyboy",
+  "license": "ISC",
+  "devDependencies": {
+    "eslint": "^7.12.0",
+    "eslint-config-prettier": "^6.14.0",
+    "eslint-plugin-no-loops": "^0.3.0",
+    "husky": "^4.3.0",
+    "intern": "^4.8.8",
+    "lint-staged": "^10.4.2",
+    "prettier": "^2.1.2",
+    "why-is-node-running": "^2.2.0"
+  },
+  "dependencies": {
+    "plugin-error": "^1.0.1",
+    "vinyl": "^2.2.1"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged",
+      "pre-push": "npx intern"
+    }
+  },
+  "lint-staged": {
+    "index.js": [
+      "prettier --write",
+      "eslint . --cache --fix"
+    ],
+    "tests/**/*.js": [
+      "prettier --write",
+      "eslint . --cache --fix"
+    ]
+  },
+  "prettier": {
+    "semi": true,
+    "tabWidth": 4,
+    "trailingComma": "es5",
+    "arrowParens": "always",
+    "endOfLine": "lf",
+    "overrides": [
+      {
+        "files": [
+          "*.md",
+          "*.json"
+        ],
+        "options": {
+          "tabWidth": 2
+        }
+      }
+    ]
+  }
+}
