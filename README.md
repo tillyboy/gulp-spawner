@@ -1,6 +1,6 @@
 # gulp-spawner
 
-This is a little tool too shallowly wrap around Nodes `ChildProcess`. Its
+This is a little tool to create shallow wrappers around Nodes `ChildProcess`. Its
 purpose is to be an idiomatic way of launching and killing processes. While it
 provides some support for I/O, there are gulp-plugins with that in mind which
 are probably more suited for this (
