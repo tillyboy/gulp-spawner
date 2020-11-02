@@ -15,9 +15,9 @@ const spawn = () => ({
     cat: spawn.cat(),
     grep: spawn.grep(),
 });
-spawn.grep = () => spawner.sys("grep", ["-F", '"name": ', "package.json"]);
+spawn.grep = () => spawner.sys("grep", "-F", '"name": ', "package.json");
 spawn.cat = () => spawner.shx("cat");
-spawn.grepy = () => spawner.sys("grep", ["-Y", "foobar", "package.json"]);
+spawn.grepy = () => spawner.sys("grep", "-Y", "foobar", "package.json");
 
 describe("wrapper.process", () => {
     it("is an instance of <ChildProcess>", () => {

@@ -160,23 +160,23 @@ const spawner = {
      * @param command - name of the executable
      * @param args - argument vector that is passed to the executable
      * @returns wrapped process
-     * @example spawner.sys("grep", ["-F",  "foo", "bar"])
+     * @example spawner.sys("grep", "-F",  "foo", "bar")
      */
-    sys: (command, args) => spawner.wrap(spawn(command, args)),
+    sys: (command, ...args) => spawner.wrap(spawn(command, args)),
     /**
      * executes its arguments using bash
      * @param command - arbitrary bash code
      * @returns wrapped bash process
      * @example spawner.shx("echo foo > bar")
      */
-    shx: (command) => spawner.sys("bash", ["-c", command]),
+    shx: (command) => spawner.sys("bash", "-c", command),
     /**
      * executes its arguments using npx
      * @param npxArgs - arguments as you would supply them to npx
      * @returns wrapped npx process
-     * @example spawner.npx("")
+     * @example spawner.npx("cypress", "open")
      */
-    npx: (npxArgs) => spawner.sys("npx", npxArgs),
+    npx: (...npxArgs) => spawner.sys("npx", ...npxArgs),
     // TODO: exec method that automatically tries sys/npx/shx akin to npm scripts
 
     /**

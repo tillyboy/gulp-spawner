@@ -13,7 +13,7 @@ const GREP_STDOUT = '  "name": "gulp-spawner",\n';
 describe("spawner.sys", () => {
     it("spawns processes", () => {
         return spawner
-            .sys("grep", GREPARGS)
+            .sys("grep", ...GREPARGS)
             .promisify()
             .then((grep) => {
                 expect(grep.gathered.stdout()).to.equal(GREP_STDOUT);
@@ -32,23 +32,22 @@ describe("spawner.shx", () => {
     });
 });
 
-describe("spawner.npx", () => {
-    it("spawns processes", () => {
-        return spawner
-            .npx(["node-which", "node-which"])
+// FIXME: where is the error?
+describe("spawner.npx", () =>
+    it("spawns processes", () =>
+        spawner
+            .npx("node-which", "node-which")
             .promisify()
             .then((npx) => {
                 expect(
                     npx.gathered.stdout().trim().split("/").slice(-4).join("/")
                 ).to.equal("gulp-spawner/node_modules/.bin/node-which");
-            });
-    });
-});
+            })));
 
 describe("spawner.register", () => {
     it("registers new spawners", () => {
         spawner.register("grep", () =>
-            spawner.sys("grep", GREPARGS).promisify()
+            spawner.sys("grep", ...GREPARGS).promisify()
         );
         return spawner.grep().then((grep) => {
             expect(grep.gathered.stdout()).to.equal(GREP_STDOUT);
@@ -58,7 +57,7 @@ describe("spawner.register", () => {
     it("refuses to overwrite existing spawners", () => {
         expect(() => {
             spawner.register("npx", (cmd) => {
-                spawner.sys("npx", [cmd]);
+                spawner.sys("npx", cmd);
             });
         }).to.throw(
             PluginError,
