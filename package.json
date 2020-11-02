@@ -1,6 +1,6 @@
 {
   "name": "gulp-spawner",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Idiotmatic and flexible process handling for gulp",
   "main": "index.js",
   "repository": "https://github.com/tillyboy/gulp-spawner",
