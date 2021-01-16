@@ -32,7 +32,7 @@ mongod.sig.kill();
 
 ### TODOs
 
-[] uniform API for spawner.{sys,shx,npx}
-[] fix all TODOs/FIXMEs
-[] &gt;95% test coverage
-[] typescript migration?
+- [] uniform API for spawner.{sys,shx,npx}
+- [] fix all TODOs/FIXMEs
+- [] &gt;95% test coverage
+- [] typescript migration?
