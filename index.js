@@ -3,12 +3,38 @@ const { Buffer } = require("buffer");
 const { spawn } = require("child_process");
 const Vinyl = require("vinyl");
 const PluginError = require("plugin-error");
+const { nanoid } = require("nanoid");
+// TODO:
+// - [] debugging statements
+// - [] pretty logging
+// - [] daemon config
+// - [] gulp/npm scripts: ava testing/ava debugging
 
 const NULL = 0;
-const PROCESS_EXIT_TIMEOUT = 2;
+const PROCESS_EXIT_TIMEOUT = 1;
+
+const spawned = {
+    _registry: {},
+    register: (wrapped) => {
+        const id = nanoid();
+        spawned._registry[id] = wrapped;
+        wrapped.process.on("exit", () => {
+            // FIXME: doesn't work
+            delete spawned._registry[id];
+        });
+        return wrapped;
+    },
+};
 
 const SpawnerError = (msg) => new PluginError("gulp-spawner", new Error(msg));
-
+const NonZeroError = (wrapped) => {
+    const err = new PluginError(
+        "gulp-spawner",
+        new Error(`Process exited non-zero (${wrapped.invocation})`)
+    );
+    err.spawned = wrapped;
+    return err;
+};
 const joinStreams = (...streams) => {
     const out = new Readable();
     out._read = () => {};
@@ -18,14 +44,15 @@ const joinStreams = (...streams) => {
         closed[i] = false;
         ended[i] = false;
         s.on("data", (data) => out.push(data));
-        // TODO: events error, pause, resume, readable
+        s.on("error", (err) => out.push(err));
+        // TODO: events pause, resume, readable
         s.on("end", () => {
             ended[i] = true;
             if (!ended.includes(false)) out.emit("end");
         });
         s.on("close", () => {
             closed[i] = true;
-            if (!closed.includes(false)) out.close();
+            if (!closed.includes(false)) out.destroy();
         });
     });
     return out;
@@ -128,6 +155,12 @@ const gatheredFor = (child) => {
     };
 };
 
+const wasKilled = (wrapper) => wrapper.process.killed;
+const hasFailed = (wrapper) =>
+    typeof wrapper.process.exitCode === "number" &&
+    wrapper.process.exitCode !== NULL;
+const isDone = (wrapper) => wrapper.process.exitCode === NULL;
+
 const promisifyFor = (wrapper) => {
     /**
      * Get the underlying process as promise that is resolved or rejected when
@@ -137,21 +170,33 @@ const promisifyFor = (wrapper) => {
      */
     return () =>
         new Promise((resolve, reject) => {
+            if (hasFailed(wrapper)) reject(NonZeroError(wrapper));
+            if (wasKilled(wrapper) || isDone(wrapper))
+                // setTimeout(() => resolve(wrapper), PROCESS_EXIT_TIMEOUT);
+                resolve(wrapper);
+
             wrapper.process.on("exit", (code, signal) => {
-                if (code !== NULL && signal === null) reject(wrapper);
-                // FIXME: needs timeout for stdout gathering
-                setTimeout(() => resolve(wrapper), PROCESS_EXIT_TIMEOUT);
-                // const shouldResolve = [false, false];
-                // const tryResolve = (i) => {
-                //     shouldResolve[i] = true;
-                //     if (!shouldResolve.includes(false)) resolve(wrapper);
-                // };
-                // wrapper.process.stdout.on("close", () => tryResolve(0));
-                // wrapper.process.stderr.on("close", () => tryResolve(1));
-                // wrapper.process.stdout.emit("close");
-                // wrapper.process.stderr.emit("close");
+                if (code !== NULL && signal === null)
+                    reject(NonZeroError(wrapper));
+                // needs timeout for stdout gathering
+                // setTimeout(() => resolve(wrapper), PROCESS_EXIT_TIMEOUT);
+                resolve(wrapper);
             });
         });
+};
+
+const taskifyFor = (wrapper) => {
+    /**
+     * Get an async gulp task that finishes when the process finishes.
+     * @returns Gulp task
+     */
+    return (done) => {
+        wrapper.process.on("exit", (code, signal) => {
+            if (code !== NULL && signal === null) throw NonZeroError(wrapper);
+            // needs timeout for stdout gathering
+            setTimeout(() => done(), PROCESS_EXIT_TIMEOUT);
+        });
+    };
 };
 
 const spawner = {
@@ -162,14 +207,22 @@ const spawner = {
      * @returns wrapped process
      * @example spawner.sys("grep", "-F",  "foo", "bar")
      */
-    sys: (command, ...args) => spawner.wrap(spawn(command, args)),
+    sys: (command, ...args) => {
+        return spawned.register(
+            spawner.wrap(spawn(command, args), `${command} ${args.join(" ")}`)
+        );
+    },
     /**
      * executes its arguments using bash
      * @param command - arbitrary bash code
      * @returns wrapped bash process
      * @example spawner.shx("echo foo > bar")
      */
-    shx: (command) => spawner.sys("bash", "-c", command),
+    shx: (command) => {
+        return spawned.register(
+            spawner.wrap(spawn("bash", ["-c", command]), command)
+        );
+    },
     /**
      * executes its arguments using npx
      * @param npxArgs - arguments as you would supply them to npx
@@ -202,7 +255,7 @@ const spawner = {
      *      @member child - the ChildProcess instance that was passed as an argument
      *                      to the constructor method
      */
-    wrap: (child) => {
+    wrap: (child, invocation) => {
         const wrapped = {
             process: child,
             stdout: stdoutFor(child),
@@ -214,11 +267,13 @@ const spawner = {
                 child.stdin.end();
                 return wrapped;
             },
+            invocation,
         };
         wrapped.sig = signalsFor(wrapped);
         wrapped.stdin = stdinFor(wrapped);
         wrapped.forward = forwardFor(wrapped);
         wrapped.promisify = promisifyFor(wrapped);
+        wrapped.taskify = taskifyFor(wrapped);
         return wrapped;
     },
 
@@ -231,12 +286,19 @@ const spawner = {
      *          spawner.greppkg("gulp"); // search for current gulp version
      */
     register: (name, factory) => {
-        if (Object.keys(spawner).includes(name))
+        if (spawner[name] !== undefined)
             throw SpawnerError(
                 `Cannot overwrite existing property '${name}' on 'spawner'`
             );
         spawner[name] = factory;
     },
+
+    spawned: () =>
+        Object.keys(spawned._registry).map((id) => spawned._registry[id]),
+    killall: () =>
+        Object.keys(spawned._registry).forEach((id) =>
+            spawned._registry[id].sig.kill().promisify()
+        ),
 };
 
 module.exports = spawner;
