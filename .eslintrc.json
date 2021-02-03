@@ -292,6 +292,18 @@
       "globals": {
         "intern": "readonly"
       }
+    },
+    {
+      // intern
+      "files": ["tests/**/*.js"],
+      "rules": {
+        "no-magic-numbers": 0
+        // "no-unused-expressions": 0,
+        // "no-invalid-this": 0,
+        // "max-lines-per-function": 0,
+        // "max-statements": 0,
+        // "max-nested-callbacks": [2, 5]
+      }
     }
   ]
 }
