@@ -5,7 +5,7 @@
   "main": "index.js",
   "repository": "https://github.com/tillyboy/gulp-spawner",
   "scripts": {
-    "test": "intern"
+    "test": "nyc ava tests/*.js && nyc report"
   },
   "keywords": [
     "gulp",
@@ -25,8 +25,8 @@
     "eslint-config-prettier": "^7.2.0",
     "eslint-plugin-no-loops": "^0.3.0",
     "husky": "^4.3.0",
-    "intern": "^4.8.8",
     "lint-staged": "^10.4.2",
+    "nyc": "^15.1.0",
     "prettier": "^2.1.2",
     "why-is-node-running": "^2.2.0"
   },
@@ -38,7 +38,7 @@
   "husky": {
     "hooks": {
       "pre-commit": "lint-staged",
-      "pre-push": "npx intern"
+      "pre-push": "npx ava tests/**/*.spec.js"
     }
   },
   "lint-staged": {
@@ -67,6 +67,14 @@
           "tabWidth": 2
         }
       }
+    ]
+  },
+  "nyc": {
+    "include": [
+      "index.js"
+    ],
+    "reporter": [
+      "html"
     ]
   }
 }

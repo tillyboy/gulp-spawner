@@ -35,9 +35,10 @@ mongod.sig.kill();
 
 - [] fix all TODOs/FIXMEs
 - [] &gt;95% test coverage
-- [] migrate tests
-- [] test killall-switch
-- [] test registration of spawned processes
+- [x] migrate tests
+- [x] test killall-switch
+- [x] test registration of spawned processes
+- [] clean up git history
 - [] writing output to file
 - [] options and hooks when initiating
   - [] where to write STDOUT
